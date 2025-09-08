@@ -163,6 +163,7 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 	}
 	if initConfig.GitProvider != "" {
 		curdir, _ := os.Getwd()
+		curdir = filepath.Base(curdir)
 		fmt.Println("Your go module name? (default: " + initConfig.GitPath + curdir + ")")
 		var goModuleName string
 		fmt.Scanln(&goModuleName)
