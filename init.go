@@ -136,6 +136,7 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 	} else {
 		initConfig.GoModName = filepath.Base(wd)
 	}
+	wd = filepath.Base(wd)
 	if envInfo.GitInstalled {
 		bytes, err := exec.Command("git", "config", "user.name").Output()
 		if err != nil {
