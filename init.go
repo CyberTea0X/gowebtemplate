@@ -164,7 +164,9 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 	if initConfig.GitProvider != "" {
 		curdir, _ := os.Getwd()
 		curdir = filepath.Base(curdir)
-		fmt.Println("Your go module name? (default: " + initConfig.GitPath + curdir + ")")
+		gitPrefix := strings.TrimPrefix(initConfig.GitPath, "https://")
+		gitPrefix = strings.TrimPrefix(gitPrefix, "http://")
+		fmt.Println("Your go module name? (default: " + gitPrefix + curdir + ")")
 		var goModuleName string
 		fmt.Scanln(&goModuleName)
 		if goModuleName != "" {
