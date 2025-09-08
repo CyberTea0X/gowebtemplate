@@ -172,12 +172,13 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 		} else {
 			initConfig.GoModName = initConfig.GitPath + curdir
 		}
-	}
-	fmt.Println("Your go module name? (default: " + initConfig.GoModName + ")")
-	var goModuleName string
-	fmt.Scanln(&goModuleName)
-	if goModuleName != "" {
-		initConfig.GoModName = goModuleName
+	} else {
+		fmt.Println("Your go module name? (default: " + initConfig.GoModName + ")")
+		var goModuleName string
+		fmt.Scanln(&goModuleName)
+		if goModuleName != "" {
+			initConfig.GoModName = goModuleName
+		}
 	}
 
 	initConfig.InitTask = envInfo.TaskInstalled && YesNoPrompt("Do you want to initialize a taskfile? (y/n)", true)
