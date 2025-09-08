@@ -68,15 +68,21 @@ func initProject(initConfig InitConfig) {
 
 	if initConfig.ReInitGit {
 		fmt.Println("Reinitializing git...")
-		if err := os.RemoveAll(".git"); err != nil {
-			fmt.Println("Error removing .git directory")
-			fmt.Println(err)
-		}
 		if err := exec.Command("git", "init").Run(); err != nil {
 			fmt.Println("Error reinitializing git")
 			fmt.Println(err)
 		} else {
 			fmt.Println("Done")
+		}
+		if initConfig.GitProvider != "" {
+			fmt.Println("Configuring git...")
+			fmt.Println("git remote add origin " + initConfig.GitPath)
+			if err := exec.Command("git", "remote", "add", "origin", initConfig.GitPath).Run(); err != nil {
+				fmt.Println("Error configuring git")
+				fmt.Println(err)
+			} else {
+				fmt.Println("Done")
+			}
 		}
 	}
 
@@ -143,15 +149,30 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 		}
 		initConfig.GitUsername = gitUsername
 
-		gitProvider := "github.com"
-		fmt.Println("What's your git provider? (default: " + gitProvider + ")")
+		gitProvider := ""
+		fmt.Println("What's your git provider? (default: none)")
 		var gitProviderInput string
 		fmt.Scanln(&gitProviderInput)
 		if gitProviderInput != "" {
 			gitProvider = gitProviderInput
 		}
 		initConfig.GitProvider = gitProvider
-		initConfig.GitPath = "https://" + gitProvider + "/" + gitUsername + "/"
+		if gitProvider != "" {
+			initConfig.GitPath = "https://" + gitProvider + "/" + gitUsername + "/"
+		}
+	}
+	if initConfig.GitProvider != "" {
+		curdir, _ := os.Getwd()
+		fmt.Println("Your go module name? (default: " + initConfig.GitPath + curdir + ")")
+		var goModuleName string
+		fmt.Scanln(&goModuleName)
+		if goModuleName != "" {
+			initConfig.GoModName = goModuleName
+		}
+		fmt.Scanln(&initConfig.GoModName)
+	} else {
+		fmt.Println("Your go module name? (default: undefined)")
+		fmt.Scanln(&initConfig.GoModName)
 	}
 	if initConfig.GoModName == "" {
 		initConfig.GoModName = "undefined"
