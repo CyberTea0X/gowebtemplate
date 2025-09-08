@@ -66,6 +66,20 @@ func initProject(initConfig InitConfig) {
 		fmt.Println("Done")
 	}
 
+	if initConfig.ReInitGit {
+		fmt.Println("Reinitializing git...")
+		if err := os.RemoveAll(".git"); err != nil {
+			fmt.Println("Error removing .git directory")
+			fmt.Println(err)
+		}
+		if err := exec.Command("git", "init").Run(); err != nil {
+			fmt.Println("Error reinitializing git")
+			fmt.Println(err)
+		} else {
+			fmt.Println("Done")
+		}
+	}
+
 	fmt.Println("Initialization finished!")
 	fmt.Println("Do you want to remove init.go? (y/n)")
 	var answer string
@@ -91,16 +105,25 @@ type InitConfig struct {
 	GoModName   string
 	InitTask    bool
 	InitMake    bool
+	ReInitGit   bool
 }
 
-func YesNoPrompt(question string) bool {
-	fmt.Println(question + " (y/n) (default: y)")
+func YesNoPrompt(question string, defaultYes bool) bool {
+	if defaultYes {
+		question += " (default: y)"
+	} else {
+		question += " (default: n)"
+	}
+	fmt.Println(question + " (y/n)")
 	var answer string
 	fmt.Scanln(&answer)
 	if answer == "n" {
 		return false
 	}
-	return true
+	if answer == "y" {
+		return true
+	}
+	return defaultYes
 }
 
 func PromptInitConfig(envInfo EnvInfo) InitConfig {
@@ -146,13 +169,9 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 		initConfig.GoModName = goModuleName
 	}
 
-	if envInfo.TaskInstalled && YesNoPrompt("Do you want to initialize a taskfile? (y/n)") {
-		initConfig.InitTask = true
-	}
-
-	if envInfo.MakeInstalled && YesNoPrompt("Do you want to initialize a makefile? (y/n)") {
-		initConfig.InitMake = true
-	}
+	initConfig.InitTask = envInfo.TaskInstalled && YesNoPrompt("Do you want to initialize a taskfile? (y/n)", true)
+	initConfig.InitMake = envInfo.MakeInstalled && YesNoPrompt("Do you want to initialize a makefile? (y/n)", true)
+	initConfig.ReInitGit = envInfo.GitInstalled && YesNoPrompt("Do you want to reinitialize git? (y/n)", true)
 	return initConfig
 }
 
