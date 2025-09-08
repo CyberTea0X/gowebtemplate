@@ -21,8 +21,8 @@ func main() {
 }
 
 func initProject(initConfig InitConfig) {
-
 	fmt.Println("Initializing go module...")
+	fmt.Println("go mod init " + initConfig.GoModName)
 	cmd := exec.Command("go", "mod", "init", initConfig.GoModName)
 	if cmd.Err != nil {
 		fmt.Println("Error initializing go module")
@@ -101,6 +101,7 @@ type InitConfig struct {
 	GitProvider string
 	GitUsername string
 	GitPath     string
+	GitRepoName string
 	GoModName   string
 	InitTask    bool
 	InitMake    bool
@@ -162,17 +163,15 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 		}
 	}
 	if initConfig.GitProvider != "" {
-		curdir, _ := os.Getwd()
-		curdir = filepath.Base(curdir)
 		gitPrefix := strings.TrimPrefix(initConfig.GitPath, "https://")
 		gitPrefix = strings.TrimPrefix(gitPrefix, "http://")
-		fmt.Println("Your go module name? (default: " + gitPrefix + curdir + ")")
+		fmt.Println("Your go module name? (default: " + gitPrefix + wd + ")")
 		var goModuleName string
 		fmt.Scanln(&goModuleName)
 		if goModuleName != "" {
 			initConfig.GoModName = goModuleName
 		} else {
-			initConfig.GoModName = initConfig.GitPath + curdir
+			initConfig.GoModName = initConfig.GitPath + wd
 		}
 	} else {
 		fmt.Println("Your go module name? (default: " + initConfig.GoModName + ")")
@@ -186,6 +185,16 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 	initConfig.InitTask = envInfo.TaskInstalled && YesNoPrompt("Do you want to initialize a taskfile? (y/n)", true)
 	initConfig.InitMake = envInfo.MakeInstalled && YesNoPrompt("Do you want to initialize a makefile? (y/n)", true)
 	initConfig.ReInitGit = envInfo.GitInstalled && YesNoPrompt("Do you want to reinitialize git? (y/n)", true)
+	if initConfig.ReInitGit {
+		fmt.Println("What's your git repo name? (default: " + wd + ")")
+		var gitRepoName string
+		fmt.Scanln(&gitRepoName)
+		if gitRepoName != "" {
+			initConfig.GitRepoName = gitRepoName
+		} else {
+			initConfig.GitRepoName = wd
+		}
+	}
 	initConfig.RemoveInit = YesNoPrompt("Do you want to remove init.go? (y/n)", true)
 
 	return initConfig
