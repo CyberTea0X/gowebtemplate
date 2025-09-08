@@ -168,14 +168,9 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 		fmt.Scanln(&goModuleName)
 		if goModuleName != "" {
 			initConfig.GoModName = goModuleName
+		} else {
+			initConfig.GoModName = initConfig.GitPath + curdir
 		}
-		fmt.Scanln(&initConfig.GoModName)
-	} else {
-		fmt.Println("Your go module name? (default: undefined)")
-		fmt.Scanln(&initConfig.GoModName)
-	}
-	if initConfig.GoModName == "" {
-		initConfig.GoModName = "undefined"
 	}
 	fmt.Println("Your go module name? (default: " + initConfig.GoModName + ")")
 	var goModuleName string
