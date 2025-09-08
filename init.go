@@ -74,10 +74,10 @@ func initProject(initConfig InitConfig) {
 		} else {
 			fmt.Println("Done")
 		}
-		if initConfig.GitProvider != "" {
+		if initConfig.GitRepo != "" {
 			fmt.Println("Configuring git...")
-			fmt.Println("git remote add origin " + initConfig.GitPath)
-			if err := exec.Command("git", "remote", "add", "origin", initConfig.GitPath).Run(); err != nil {
+			fmt.Println("git remote add origin " + initConfig.GitRepo)
+			if err := exec.Command("git", "remote", "add", "origin", initConfig.GitRepo).Run(); err != nil {
 				fmt.Println("Error configuring git")
 				fmt.Println(err)
 			} else {
@@ -98,15 +98,12 @@ func initProject(initConfig InitConfig) {
 }
 
 type InitConfig struct {
-	GitProvider string
-	GitUsername string
-	GitPath     string
-	GitRepoName string
-	GoModName   string
-	InitTask    bool
-	InitMake    bool
-	ReInitGit   bool
-	RemoveInit  bool
+	GitRepo    string
+	GoModName  string
+	InitTask   bool
+	InitMake   bool
+	ReInitGit  bool
+	RemoveInit bool
 }
 
 func YesNoPrompt(question string, defaultYes bool) bool {
@@ -138,64 +135,33 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 	}
 	wd = filepath.Base(wd)
 	if envInfo.GitInstalled {
-		bytes, err := exec.Command("git", "config", "user.name").Output()
+		fmt.Println("What's your git repository?")
+		var gitRepo string
+		_, err := fmt.Scanln(&gitRepo)
 		if err != nil {
-			bytes = []byte{}
+			fmt.Println("Error reading input")
+			fmt.Println(err)
 		}
-		maybeUsername := strings.TrimSpace(string(bytes))
-		fmt.Println("What's your git username? (default: " + maybeUsername + ")")
-		var gitUsername string
-		fmt.Scanln(&gitUsername)
-		if gitUsername == "" {
-			gitUsername = maybeUsername
-		}
-		initConfig.GitUsername = gitUsername
-
-		gitProvider := ""
-		fmt.Println("What's your git provider? (default: none)")
-		var gitProviderInput string
-		fmt.Scanln(&gitProviderInput)
-		if gitProviderInput != "" {
-			gitProvider = gitProviderInput
-		}
-		initConfig.GitProvider = gitProvider
-		if gitProvider != "" {
-			initConfig.GitPath = "https://" + gitProvider + "/" + gitUsername + "/"
+		if gitRepo != "" {
+			initConfig.GitRepo = gitRepo
 		}
 	}
-	if initConfig.GitProvider != "" {
-		gitPrefix := strings.TrimPrefix(initConfig.GitPath, "https://")
-		gitPrefix = strings.TrimPrefix(gitPrefix, "http://")
-		fmt.Println("Your go module name? (default: " + gitPrefix + wd + ")")
-		var goModuleName string
-		fmt.Scanln(&goModuleName)
-		if goModuleName != "" {
-			initConfig.GoModName = goModuleName
-		} else {
-			initConfig.GoModName = initConfig.GitPath + wd
-		}
-	} else {
-		fmt.Println("Your go module name? (default: " + initConfig.GoModName + ")")
-		var goModuleName string
-		fmt.Scanln(&goModuleName)
-		if goModuleName != "" {
-			initConfig.GoModName = goModuleName
-		}
+	if initConfig.GitRepo != "" {
+		gitModPath := strings.TrimPrefix(initConfig.GitRepo, "https://")
+		gitModPath = strings.TrimPrefix(gitModPath, "http://")
+		initConfig.GoModName = gitModPath
+	}
+
+	fmt.Println("Your go module name? (default: " + initConfig.GoModName + ")")
+	var goModuleName string
+	fmt.Scanln(&goModuleName)
+	if goModuleName != "" {
+		initConfig.GoModName = goModuleName
 	}
 
 	initConfig.InitTask = envInfo.TaskInstalled && YesNoPrompt("Do you want to initialize a taskfile? (y/n)", true)
 	initConfig.InitMake = envInfo.MakeInstalled && YesNoPrompt("Do you want to initialize a makefile? (y/n)", true)
 	initConfig.ReInitGit = envInfo.GitInstalled && YesNoPrompt("Do you want to reinitialize git? (y/n)", true)
-	if initConfig.ReInitGit {
-		fmt.Println("What's your git repo name? (default: " + wd + ")")
-		var gitRepoName string
-		fmt.Scanln(&gitRepoName)
-		if gitRepoName != "" {
-			initConfig.GitRepoName = gitRepoName
-		} else {
-			initConfig.GitRepoName = wd
-		}
-	}
 	initConfig.RemoveInit = YesNoPrompt("Do you want to remove init.go? (y/n)", true)
 
 	return initConfig
