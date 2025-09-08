@@ -137,11 +137,7 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 	if envInfo.GitInstalled {
 		fmt.Println("What's your git repository?")
 		var gitRepo string
-		_, err := fmt.Scanln(&gitRepo)
-		if err != nil {
-			fmt.Println("Error reading input")
-			fmt.Println(err)
-		}
+		fmt.Scanln(&gitRepo)
 		if gitRepo != "" {
 			initConfig.GitRepo = gitRepo
 		}
