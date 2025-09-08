@@ -76,8 +76,8 @@ func initProject(initConfig InitConfig) {
 		}
 		if initConfig.GitRepo != "" {
 			fmt.Println("Configuring git...")
-			fmt.Println("git remote add origin " + initConfig.GitRepo)
-			if err := exec.Command("git", "remote", "add", "origin", initConfig.GitRepo).Run(); err != nil {
+			fmt.Println("git remote set-url origin " + initConfig.GitRepo)
+			if err := exec.Command("git", "remote", "set-url", "origin", initConfig.GitRepo).Run(); err != nil {
 				fmt.Println("Error configuring git")
 				fmt.Println(err)
 			} else {
