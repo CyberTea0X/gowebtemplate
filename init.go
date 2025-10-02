@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,12 +26,20 @@ func initProject(initConfig InitConfig) {
 	fmt.Println("go mod init " + initConfig.GoModName)
 	_, err := exec.Command("go", "mod", "init", initConfig.GoModName).Output()
 	if err != nil {
-		fmt.Println("Error initializing go module")
-		fmt.Println(err)
+		log.Println("Error initializing go module")
+		log.Println(err)
 		return
 	}
 
 	fmt.Println("Done")
+
+	if initConfig.DirectoryName != "gowebtemplate" {
+		fmt.Println("renaming directory...")
+		if err := os.Rename(".", initConfig.DirectoryName); err != nil {
+			log.Println("Error renaming current directory")
+			log.Println(err)
+		}
+	}
 	fmt.Println("Initializing directory structure...")
 	os.MkdirAll("./cmd/"+filepath.Base(initConfig.GoModName), os.ModePerm)
 	os.MkdirAll("./pkg", os.ModePerm)
@@ -40,8 +49,8 @@ func initProject(initConfig InitConfig) {
 	fmt.Println("Creating main.go...")
 	mainFile, err := os.Create("./cmd/" + filepath.Base(initConfig.GoModName) + "/main.go")
 	if err != nil {
-		fmt.Println("Error creating main.go")
-		fmt.Println(err)
+		log.Println("Error creating main.go")
+		log.Println(err)
 		return
 	}
 	defer mainFile.Close()
@@ -53,8 +62,8 @@ func initProject(initConfig InitConfig) {
 	if initConfig.InitTask {
 		fmt.Println("Initializing taskfile...")
 		if err := exec.Command("task", "--init").Run(); err != nil {
-			fmt.Println("Error initializing taskfile")
-			fmt.Println(err)
+			log.Println("Error initializing taskfile")
+			log.Println(err)
 		} else {
 			fmt.Println("Done")
 		}
@@ -69,8 +78,8 @@ func initProject(initConfig InitConfig) {
 	if initConfig.ReInitGit {
 		fmt.Println("Reinitializing git...")
 		if err := exec.Command("git", "init").Run(); err != nil {
-			fmt.Println("Error reinitializing git")
-			fmt.Println(err)
+			log.Println("Error reinitializing git")
+			log.Println(err)
 		} else {
 			fmt.Println("Done")
 		}
@@ -78,8 +87,8 @@ func initProject(initConfig InitConfig) {
 			fmt.Println("Configuring git...")
 			fmt.Println("git remote set-url origin " + initConfig.GitRepo)
 			if err := exec.Command("git", "remote", "set-url", "origin", initConfig.GitRepo).Run(); err != nil {
-				fmt.Println("Error configuring git")
-				fmt.Println(err)
+				log.Println("Error configuring git")
+				log.Println(err)
 			} else {
 				fmt.Println("Done")
 			}
@@ -98,12 +107,13 @@ func initProject(initConfig InitConfig) {
 }
 
 type InitConfig struct {
-	GitRepo    string
-	GoModName  string
-	InitTask   bool
-	InitMake   bool
-	ReInitGit  bool
-	RemoveInit bool
+	GitRepo       string
+	GoModName     string
+	InitTask      bool
+	InitMake      bool
+	ReInitGit     bool
+	RemoveInit    bool
+	DirectoryName string
 }
 
 func YesNoPrompt(question string, defaultYes bool) bool {
@@ -153,6 +163,12 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 	fmt.Scanln(&goModuleName)
 	if goModuleName != "" {
 		initConfig.GoModName = goModuleName
+	}
+
+	if initConfig.GitRepo == "" && YesNoPrompt("Do you want to rename directory to "+initConfig.GoModName+" (y/n) (default: n)", false) {
+		initConfig.DirectoryName = initConfig.GoModName
+	} else {
+		initConfig.DirectoryName = "gowebtemplate"
 	}
 
 	initConfig.InitTask = envInfo.TaskInstalled && YesNoPrompt("Do you want to initialize a taskfile? (y/n)", true)
