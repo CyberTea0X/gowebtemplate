@@ -165,7 +165,7 @@ func PromptInitConfig(envInfo EnvInfo) InitConfig {
 		initConfig.GoModName = goModuleName
 	}
 
-	if initConfig.DirectoryName != "gowebtemplate" && initConfig.GitRepo == "" && YesNoPrompt("Do you want to rename directory to "+initConfig.GoModName, false) {
+	if initConfig.GoModName != "gowebtemplate" && initConfig.GitRepo == "" && YesNoPrompt("Do you want to rename directory to "+initConfig.GoModName, false) {
 		initConfig.DirectoryName = initConfig.GoModName
 	} else {
 		initConfig.DirectoryName = "gowebtemplate"
