@@ -23,10 +23,10 @@ func main() {
 func initProject(initConfig InitConfig) {
 	fmt.Println("Initializing go module...")
 	fmt.Println("go mod init " + initConfig.GoModName)
-	cmd := exec.Command("go", "mod", "init", initConfig.GoModName)
-	if cmd.Err != nil {
+	_, err := exec.Command("go", "mod", "init", initConfig.GoModName).Output()
+	if err != nil {
 		fmt.Println("Error initializing go module")
-		fmt.Println(cmd.Err)
+		fmt.Println(err)
 		return
 	}
 
